@@ -18,9 +18,8 @@ These rules apply when working on any file under `scripts/`. They supplement the
 
 ```r
 library(tidyverse)     # dplyr, ggplot2, readr, tidyr, stringr
-library(fixest)        # feols() for panel data — preferred estimator
-library(fect)          # staggered DiD / event studies
 library(modelsummary)  # regression tables (preferred over stargazer)
+# [YOUR-PACKAGES]      # e.g., fixest (panel FE), survival (survival analysis), lme4 (mixed models)
 ```
 
 ### Script header (required)
@@ -99,10 +98,11 @@ Before extending any analysis, replicate the original results to the dot:
 3. Verify against tolerance thresholds (point estimates < 0.01, SEs < 0.05, N exact)
 4. Only commit extensions after all targets PASS
 
-**Stata → R translation traps:**
-- `cluster(id)` in Stata uses different df-adjustment than some R packages; verify with `feols()`
-- `areg y x, absorb(id)` → `feols(y ~ x | id)` — check demeaning method matches
-- Bootstrap: match seed, reps, and bootstrap type exactly
+**Cross-software replication traps:**
+- Clustering / SE adjustments differ across implementations — verify df corrections match
+- FE/demeaning methods differ across software — confirm the algorithm matches
+- Bootstrap: match seed, number of replications, and bootstrap type exactly
+- Missing data handling: confirm `na.omit()` / listwise deletion matches original software
 
 ---
 

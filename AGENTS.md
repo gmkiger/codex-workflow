@@ -1,8 +1,9 @@
 # Academic Research Workflow — GPT Codex CLI Configuration
 
-**Stack:** R · Tidyverse · fixest · fect · XeLaTeX/Beamer · Quarto/RevealJS
-**Domain:** Political economy of climate change — causal inference, observational data
-**Institution:** Emory University (PhD candidate)
+**Project:** [YOUR PROJECT NAME]
+**Stack:** [YOUR STACK — e.g., R · Tidyverse · XeLaTeX/Beamer · Quarto/RevealJS]
+**Domain:** [YOUR DOMAIN — e.g., causal inference, computational biology, NLP]
+**Institution:** [YOUR INSTITUTION]
 **Standard:** Publication-quality academic output at every commit
 
 > This file is the primary system prompt for the OpenAI Codex CLI.
@@ -14,7 +15,7 @@
 ## 1. Folder Structure
 
 ```
-codex-workflow/
+[YOUR-PROJECT]/
 ├── AGENTS.md                    # This file (Codex system prompt)
 ├── CLAUDE.md                    # Claude Code equivalent (preserved)
 ├── Bibliography_base.bib        # Single canonical bibliography
@@ -316,10 +317,9 @@ Step 6: SCORE    — quality_score.py; score >= threshold? YES → done. NO → 
 - All paths relative to repo root; `dir.create(..., recursive = TRUE)` for outputs (INV-10)
 
 **Preferred packages:**
-- Panel regressions: `fixest::feols()` (fast, flexible FE + clustering)
-- Event studies / staggered DiD: `fect` package
-- Regression tables: `modelsummary`
 - Data manipulation: `tidyverse` (`dplyr`, `tidyr`, `ggplot2`, `readr`)
+- Regression tables: `modelsummary` (preferred over `stargazer`)
+- `[YOUR-PACKAGES]` *(add your domain-specific packages here — e.g., `fixest` for panel FE, `survival` for survival analysis)*
 - Never use `require()`, never use `T`/`F` for logicals
 
 **Figure standards:**
@@ -337,7 +337,7 @@ Step 6: SCORE    — quality_score.py; score >= threshold? YES → done. NO → 
 **Script structure:**
 ```r
 # Header: title, author, purpose, inputs, outputs
-library(tidyverse); library(fixest); library(modelsummary)
+library(tidyverse); library(modelsummary)  # + [your domain packages]
 set.seed(20260415)  # YYYYMMDD
 dir.create("scripts/R/_outputs/...", recursive = TRUE, showWarnings = FALSE)
 # 0. Setup / 1. Data / 2. Exploration / 3. Analysis / 4. Tables+Figures / 5. Export
@@ -357,8 +357,9 @@ dir.create("scripts/R/_outputs/...", recursive = TRUE, showWarnings = FALSE)
 
 | Environment | Effect | Use |
 |-------------|--------|-----|
-| `keybox` | Gold background box | Key points |
-| `definitionbox[Title]` | Blue-bordered titled box | Formal definitions |
+| `[your-env]` | [Description] | [When to use] |
+| `keybox` | Gold background box | Key points *(example — delete)* |
+| `definitionbox[Title]` | Blue-bordered titled box | Formal definitions *(example — delete)* |
 
 ---
 
@@ -373,22 +374,28 @@ dir.create("scripts/R/_outputs/...", recursive = TRUE, showWarnings = FALSE)
 
 | Class | Effect | Use |
 |-------|--------|-----|
-| `.smaller` | 85% font | Dense content |
-| `.positive` | Green bold | Good annotations |
+| `[.your-class]` | [Description] | [When to use] |
+| `.smaller` | 85% font | Dense content *(example — delete)* |
+| `.positive` | Green bold | Good annotations *(example — delete)* |
 
 ---
 
 ## 12. Academic Standards (Research Domain)
 
-**Causal inference / observational data:**
-- Identification strategy must be stated explicitly with assumptions
-- Standard errors: cluster at the appropriate level; document the rationale
-- Report ATT vs ATE distinction; use correct estimand
+**Research methods** *(fill in standards specific to your field):*
+- Analysis approach must be stated explicitly with assumptions
+- Uncertainty quantification: document your standard error / CI / Bayes credible interval choice
+- Report estimands precisely; distinguish primary from sensitivity analyses
 - Robustness checks are expected; absence requires justification
 - Replication: match original specification exactly before extending (see `.codex/rules/replication-protocol.md`)
 
+*Example additions — delete and replace with your own:*
+- *Causal inference: state identification strategy; cluster SEs at appropriate level; report ATT vs ATE*
+- *Machine learning: report train/val/test split; no target leakage; uncertainty via bootstrap or conformal*
+- *Computational biology: p-value correction method (BH/Bonferroni); effect size alongside significance*
+
 **Peer-review simulation (journal profiles in `.codex/references/journal-profiles.md`):**
-- Supported journals: AER, QJE, JPE, ECMA, ReStud (econ); see references for others
+- Ships with econ + political-science profiles as examples; add your target journals following the template
 - `/review-paper --peer <JOURNAL>` runs: editor desk review → 2 dispositioned referees → editorial decision
 - Cross-artifact review: manuscript claims must match R output files (`.codex/rules/cross-artifact-review.md`)
 

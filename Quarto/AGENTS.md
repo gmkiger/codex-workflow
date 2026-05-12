@@ -31,16 +31,16 @@ Never commit raw HTML output to `Quarto/` — it belongs in `docs/` only. The `s
 
 | Class | Effect | Use |
 |-------|--------|-----|
-| `.smaller` | 85% font size | Dense content slides |
-| `.positive` | Green, bold | Good/positive annotations |
-| `.negative` | Red | Bad/negative annotations |
-| `.emorygold` | Emory gold highlight | Key terms |
-| `.muted` | Gray text | Secondary information |
-| `.keybox` | Gold background callout | Key takeaways |
-| `.definitionbox` | Blue-bordered box | Formal definitions |
-| `.scrollable` | Scrollable slide | Long content |
+| `[.your-class]` | [Description] | [When to use] |
+| `.smaller` | 85% font size | Dense content slides *(example — delete)* |
+| `.positive` | Green, bold | Good/positive annotations *(example — delete)* |
+| `.negative` | Red | Bad/negative annotations *(example — delete)* |
+| `.muted` | Gray text | Secondary information *(example — delete)* |
+| `.keybox` | Gold background callout | Key takeaways *(example — delete)* |
+| `.definitionbox` | Blue-bordered box | Formal definitions *(example — delete)* |
+| `.scrollable` | Scrollable slide | Long content *(example — delete)* |
 
-*Update this table when adding new CSS classes to `theme-template.scss`.*
+*Replace example rows with your actual CSS classes from `theme-template.scss`. Update this table whenever you add or remove classes.*
 
 ## TikZ Diagrams (INV-4 — non-negotiable)
 
