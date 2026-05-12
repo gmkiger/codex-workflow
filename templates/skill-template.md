@@ -435,6 +435,6 @@ When adapting this template to your domain:
 
 - **File:** `templates/skill-template.md`
 - **Purpose:** Starter for domain-specific skills
-- **Usage:** Copy to `.claude/skills/[name]/SKILL.md`, customize for your field
+- **Usage:** Copy to `.codex/skills/[name].md`, customize for your field
 
-For existing skills examples, see `.claude/skills/` directory (30 skills for LaTeX, R, Quarto, and research workflows).
+For existing skills examples, see `.codex/skills/` directory (31 skills for LaTeX, R, Quarto, and research workflows).

@@ -17,6 +17,10 @@ This implements the CoVe loop from Dhuliawala et al. 2023 (arXiv:2309.11495) wit
 
 Confirm: draft file exists, at least one source pointer available, `.codex/agents/claim-verifier.md` exists.
 
+**`--source` flag:** Treat the following path or URL as source material for the verifier. Repeat in the task text if there are multiple sources.
+
+**`--no-fail-closed` flag:** Report verification failures without regenerating affected draft sections.
+
 ## Phase 1: Extract Claims
 
 Read the draft. Identify:

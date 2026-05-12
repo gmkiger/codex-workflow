@@ -4,8 +4,8 @@
 # Runs session initialization (active plan + session log context), then
 # launches codex with the project's standard flags. Pass any additional
 # codex flags as arguments, e.g.:
-#   ./scripts/codex.sh --model o3
-#   ./scripts/codex.sh --approval-mode auto-edit
+#   CODEX_MODEL=gpt-5.2 ./scripts/codex.sh
+#   CODEX_APPROVAL_POLICY=never ./scripts/codex.sh
 #
 # Requirements: codex CLI in PATH (npm install -g @openai/codex or equivalent)
 
@@ -26,10 +26,30 @@ if ! command -v codex >/dev/null 2>&1; then
     exit 1
 fi
 
-# Launch codex with project defaults
-# --model: gpt-4.1 is the recommended model for this workflow
-# --approval-mode full-auto: equivalent to Claude Code bypassPermissions
-exec codex \
-    --model gpt-4.1 \
-    --approval-mode full-auto \
-    "$@"
+# Launch codex with project defaults.
+#
+# Codex CLI 0.130.0 uses `--ask-for-approval` and `--sandbox`; older
+# `--approval-mode` examples from Claude/Codex migrations are intentionally
+# avoided here. Environment variables let users pin a model/policy without
+# editing this script.
+CODEX_MODEL="${CODEX_MODEL:-}"
+CODEX_APPROVAL_POLICY="${CODEX_APPROVAL_POLICY:-on-request}"
+CODEX_SANDBOX="${CODEX_SANDBOX:-workspace-write}"
+
+case "$CODEX_SANDBOX" in
+    read-only|workspace-write|danger-full-access)
+        ;;
+    *)
+        echo "WARNING: invalid CODEX_SANDBOX='$CODEX_SANDBOX'; using workspace-write" >&2
+        CODEX_SANDBOX="workspace-write"
+        ;;
+esac
+
+cmd=(codex)
+if [[ -n "$CODEX_MODEL" ]]; then
+    cmd+=(--model "$CODEX_MODEL")
+fi
+cmd+=(--ask-for-approval "$CODEX_APPROVAL_POLICY")
+cmd+=(--sandbox "$CODEX_SANDBOX")
+
+exec "${cmd[@]}" "$@"

@@ -38,9 +38,9 @@ Replace `YOUR_USERNAME` with your GitHub username.
 ./scripts/codex.sh
 ```
 
-This launcher sets the model (`gpt-4.1`), approval mode (`full-auto`), and runs the session-init hook — which prints your active plan and most recent session log so every session starts oriented.
+This launcher runs the session-init hook — which prints your active plan and most recent session log so every session starts oriented — then starts Codex with safe project defaults.
 
-> **Approval mode:** `--approval-mode full-auto` lets Codex run without prompting for every tool call — equivalent to Claude Code's Bypass mode. For interactive approval on each step, run `codex --model gpt-4.1` directly. The `scripts/codex.sh` launcher hard-codes `full-auto`; edit the file to change this default.
+> **Codex defaults:** `scripts/codex.sh` uses `--ask-for-approval on-request` and `--sandbox workspace-write`. Set `CODEX_APPROVAL_POLICY=never` for unattended sandboxed runs, `CODEX_SANDBOX=danger-full-access` only in externally trusted environments, and `CODEX_MODEL=<model>` if you want to pin a model.
 
 Then paste the starter prompt, filling in your project details:
 
@@ -100,7 +100,7 @@ Every artifact gets a score (0–100). Scores below threshold halt the workflow 
 - **90** — PR threshold
 - **95** — excellence (aspirational)
 
-> **Hard enforcement:** Unlike the advisory `/commit` skill in the Claude Code version, this template ships a `.git/hooks/pre-commit` hook that blocks any direct `git commit` if a staged `.tex`, `.qmd`, or `.R` file scores below 80. This runs `scripts/quality_score.py` on staged files before every commit — whether you use the Codex skill or commit directly. Override with `git commit --no-verify -m "override: [reason]"` when you have a documented reason.
+> **Hard enforcement:** Unlike the advisory `/commit` skill in the Claude Code version, this template ships a tracked `.githooks/pre-commit` hook that blocks any direct `git commit` if a staged `.tex`, `.qmd`, or `.R` file scores below 80. Install it once per clone with `./scripts/install-hooks.sh`. Override with `git commit --no-verify -m "override: [reason]"` when you have a documented reason.
 
 ### Context Survival
 
@@ -261,11 +261,10 @@ A git pre-commit hook runs `scripts/quality_score.py` on every staged `.tex`, `.
 
 **Override:** `git commit --no-verify -m "override: [reason]"` — use only with a documented reason.
 
-> **Fresh clone note:** Git hooks are not tracked by git. After cloning, install the hook with:
+> **Fresh clone note:** Git hook configuration is local to each clone. After cloning, install the tracked hook with:
 > ```bash
-> cp .codex/hooks/pre-commit-template .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+> ./scripts/install-hooks.sh
 > ```
-> *(Or add a `make setup` / `scripts/setup.sh` step to your project.)*
 
 </details>
 
@@ -296,7 +295,7 @@ A git pre-commit hook runs `scripts/quality_score.py` on every staged `.tex`, `.
 ## Adapting for Your Field
 
 1. **Fill in `AGENTS.md`** — replace `[YOUR PROJECT NAME]`, `[YOUR INSTITUTION]`, `[YOUR STACK]`, `[YOUR DOMAIN]` at the top with your actual project details
-2. **Fill in the knowledge base** (`.claude/rules/knowledge-base-template.md`) with your notation, applications, and design principles — this file is shared between both CLIs
+2. **Fill in project knowledge** — put durable notation, applications, and design principles in `MEMORY.md` or a project-specific `.codex/rules/knowledge-base.md`; keep `.claude/rules/knowledge-base-template.md` only if you also use Claude Code
 3. **Customize the domain reviewer** (`.codex/agents/domain-reviewer.md`) with review lenses specific to your field
 4. **Update the color palette** — this is a **two-surface contract**: change the HEX values at the top of **both** [`Preambles/header.tex`](Preambles/header.tex) (Beamer/TikZ) **and** [`Quarto/theme-template.scss`](Quarto/theme-template.scss) (Quarto slides) so they agree. Then run `./scripts/check-palette-sync.sh` to verify. Forgetting one surface silently produces mismatched Beamer vs. Quarto renderings. See [`Preambles/README.md`](Preambles/README.md) for the full contract.
 5. **Add domain-specific R packages** to the `[YOUR-PACKAGES]` placeholder in `scripts/AGENTS.md` and update the stack note in `AGENTS.md` §9
@@ -315,12 +314,12 @@ If you have used the Claude Code version of this workflow, here is what changes:
 | Config file | `CLAUDE.md` | `AGENTS.md` |
 | Path-scoped rules | Auto-loaded via `paths:` frontmatter | Subdirectory `AGENTS.md` stacking (native Codex behavior) |
 | Invoking a skill | Type `/skill-name` | Tell Codex "run the skill-name skill" — or `./scripts/run-workflow.sh skill-name` for one-shot |
-| Autonomous mode | `bypassPermissions` / Bypass mode | `--approval-mode full-auto` (via `./scripts/codex.sh`) |
+| Autonomous mode | `bypassPermissions` / Bypass mode | `CODEX_APPROVAL_POLICY=never ./scripts/codex.sh` for unattended sandboxed runs |
 | Multi-agent | Spawned subagents via `Task` tool | Sequential role-switching: Codex reads agent `.md`, adopts role, saves output, continues |
 | Context isolation (CoVe) | Forked subagent with `context: fork` | Fresh `codex` subprocess via `./scripts/run-workflow.sh --fork` |
 | Hook events | Native PreCompact / PostToolUse / Stop | Shell scripts called explicitly (`session-init.sh` runs on startup via `codex.sh`) |
 | Quality gate | Advisory (halts `/commit` skill) | Hard git pre-commit hook (blocks `git commit` directly) |
-| Session config | `.claude/settings.json` | `--model` and `--approval-mode` flags in `scripts/codex.sh` |
+| Session config | `.claude/settings.json` | `CODEX_MODEL`, `CODEX_APPROVAL_POLICY`, and `CODEX_SANDBOX` environment variables used by `scripts/codex.sh` |
 
 ---
 

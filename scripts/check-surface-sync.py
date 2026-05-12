@@ -2,9 +2,8 @@
 """
 Check cross-document count consistency for the template's public surfaces.
 
-Prevents the drift pattern that hit PRs #70, #76, #78 — where adding a skill
-(agent, rule, hook) updates `.claude/` but leaves stale counts in README,
-CLAUDE.md, the guide source, the rendered guide, or the landing page.
+Prevents drift where adding a Codex skill, agent, rule, or hook updates
+`.codex/` but leaves stale counts in README, AGENTS.md, or the landing page.
 
 Run via `./scripts/check-surface-sync.sh` pre-commit, or `/commit` will
 invoke it automatically.
@@ -24,12 +23,12 @@ REPO = Path(__file__).resolve().parent.parent
 
 # Ground truth: count entries on disk.
 GROUND_TRUTH = {
-    "skills":       len(list((REPO / ".claude/skills").glob("*/SKILL.md"))),
-    "agents":       len(list((REPO / ".claude/agents").glob("*.md"))),
-    "rules":        len(list((REPO / ".claude/rules").glob("*.md"))),
+    "skills":       len(list((REPO / ".codex/skills").glob("*.md"))),
+    "agents":       len(list((REPO / ".codex/agents").glob("*.md"))),
+    "rules":        len(list((REPO / ".codex/rules").glob("*.md"))),
     "hooks":        (
-        len(list((REPO / ".claude/hooks").glob("*.py"))) +
-        len(list((REPO / ".claude/hooks").glob("*.sh")))
+        len(list((REPO / ".codex/hooks").glob("*.py"))) +
+        len(list((REPO / ".codex/hooks").glob("*.sh")))
     ),
 }
 
@@ -38,9 +37,7 @@ GROUND_TRUTH = {
 # The regex MUST have exactly one capture group that yields an integer.
 SURFACES = [
     REPO / "README.md",
-    REPO / "CLAUDE.md",
-    REPO / "guide/workflow-guide.qmd",
-    REPO / "docs/workflow-guide.html",
+    REPO / "AGENTS.md",
     REPO / "docs/index.html",
     REPO / "templates/skill-template.md",
 ]

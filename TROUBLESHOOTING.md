@@ -4,9 +4,9 @@ Top failure modes newcomers hit, with the fix. If you're stuck somewhere else, r
 
 ## Environment / setup
 
-### `claude: command not found`
+### `codex: command not found`
 
-Claude Code isn't installed. Install it from [claude.ai/install](https://claude.ai/install) (or your OS's package manager). Then re-run `./scripts/validate-setup.sh`.
+Codex CLI isn't installed or is not on `PATH`. Install it from the [OpenAI Codex CLI repository](https://github.com/openai/codex), then re-run `./scripts/validate-setup.sh`.
 
 ### `xelatex: command not found`
 
@@ -20,14 +20,14 @@ Install Quarto from [quarto.org/docs/get-started](https://quarto.org/docs/get-st
 
 Required by `/extract-tikz`. `brew install pdf2svg` (macOS) / `apt install pdf2svg` (Debian/Ubuntu) / `dnf install pdf2svg` (Fedora).
 
-### Claude keeps asking permission for every tool
+### Codex keeps asking permission for tool calls
 
-Default permission mode prompts on every `Bash`, `Edit`, `Write`. Two fixes:
+The launcher defaults to `CODEX_APPROVAL_POLICY=on-request` with `CODEX_SANDBOX=workspace-write`. Two fixes:
 
-- **Auto-accept edits** — keybinding in Claude Code; see guide's [permission modes section](https://psantanna.com/claude-code-my-workflow/workflow-guide.html#settings---permissions-and-hooks).
-- **Bypass mode** — `claude --permission-mode acceptEdits` (auto-approves edits but still prompts for sensitive ops) or `claude --permission-mode bypassPermissions` (skips prompts entirely — use only on trusted repos).
+- **Unattended sandboxed mode** — run `CODEX_APPROVAL_POLICY=never ./scripts/codex.sh`.
+- **Direct CLI control** — run `codex --ask-for-approval never --sandbox workspace-write`.
 
-The template's `.claude/settings.json` pre-approves ~100 common patterns, so even at default most routine work is unattended.
+Use `--sandbox danger-full-access` only in trusted repositories or external sandboxes.
 
 ## Compilation / rendering
 
@@ -49,25 +49,29 @@ You likely invoked `quarto render` from the wrong cwd. Run it from the repo root
 
 ### `/extract-tikz` halts at prevention pre-check
 
-Good — the pre-check caught a P3 (bare `scale=`) or P4 (missing directional keyword on an edge label) violation. Fix the offending line in the Beamer source and re-run. See `.claude/rules/tikz-prevention.md`.
+Good — the pre-check caught a P3 (bare `scale=`) or P4 (missing directional keyword on an edge label) violation. Fix the offending line in the Beamer source and re-run. See `.codex/rules/tikz-prevention.md`.
 
 ## Git / hooks / CI
 
 ### Hook script permission denied
 
-`chmod +x .claude/hooks/*.py .claude/hooks/*.sh`. `./scripts/validate-setup.sh` also reports non-executable hooks.
+Run `chmod +x scripts/*.sh .codex/hooks/*.sh .githooks/pre-commit`. `./scripts/validate-setup.sh` also reports non-executable helpers.
 
-### Pre-compact hook didn't save the plan
+### Session init did not print the active plan
 
-The PreCompact hook (`.claude/hooks/pre-compact.py`) writes state to `~/.claude/sessions/<hash>/`. If the state isn't there after compaction:
+Codex has no native PreCompact hook. This template restores context by running `.codex/hooks/session-init.sh` before `scripts/codex.sh` starts Codex.
 
-- Check the hook's exit code: `echo '{}' | python3 .claude/hooks/pre-compact.py` should exit 0.
-- Check permissions on `~/.claude/sessions/`.
-- Check the session hash matches — compaction logs the hash.
+- Check that you started with `./scripts/codex.sh`, not bare `codex`.
+- Run `bash .codex/hooks/session-init.sh` manually.
+- Confirm plans live in `quality_reports/plans/` and session logs live in `quality_reports/session_logs/`.
 
 ### `/commit` fails with `quality_score.py` below threshold
 
-The script detected issues in changed files. Either fix them (recommended) or re-run `/commit` and explicitly tell Claude **"commit anyway"** or **"skip quality gate"** with a reason — the override is logged in the commit message. (There is no `--skip-quality-gate` CLI flag; the override is a natural-language signal to the skill.)
+The script detected issues in changed files. Fix them, or explicitly bypass the git hook with `git commit --no-verify -m "override: [reason]"`.
+
+### Pre-commit hook does not run
+
+Git does not track `.git/hooks`. Run `./scripts/install-hooks.sh` once per clone; it sets `core.hooksPath=.githooks`.
 
 ## Palette / theming
 
@@ -85,7 +89,11 @@ The palette contract broke. Run `./scripts/check-palette-sync.sh` — it reports
 
 You ran `03_analyze.R` directly instead of `00_run_all.R`. Re-run `00_run_all.R` (e.g. via the `/data-analysis` skill or your usual pipeline runner) — that entrypoint writes the session snapshot as its last step.
 
-## Permissions / bypass / statusline (v1.6.0 / v1.8.0)
+## Claude Code Legacy Notes
+
+The remaining sections are preserved for comparison with Pedro Sant'Anna's Claude Code template. They apply only when using `CLAUDE.md` and `.claude/`.
+
+## Permissions / bypass / statusline (Claude Code v1.6.0 / v1.8.0)
 
 ### "Prompts fire despite `bypassPermissions`"
 

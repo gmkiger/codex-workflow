@@ -49,6 +49,10 @@ Run each applicable agent in sequence (read the agent file, adopt role, produce 
 
 **`--fast` flag:** Skip separate agents; synthesize directly in one pass (cheaper, less thorough).
 
+**`--skip-substance` flag:** Do not run the domain-reviewer substance pass. Use only when the file is layout-only or the project has no customized domain reviewer yet.
+
+**`--acknowledge-template-domain-reviewer` flag:** Proceed with the template domain-reviewer despite Step 3 warnings. Report that substance findings are low-confidence until the reviewer is customized.
+
 ## Step 5: Synthesize Combined Summary
 
 ```markdown

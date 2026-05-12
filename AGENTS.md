@@ -32,7 +32,7 @@
 │   ├── specs/                   # Requirements specs
 │   └── session_logs/            # YYYY-MM-DD_description.md
 ├── .codex/                      # Codex CLI configuration
-│   ├── skills/                  # 34 workflow skill files
+│   ├── skills/                  # 31 workflow skill files
 │   ├── agents/                  # 14 specialist agent role files
 │   ├── rules/                   # Detailed reference rules
 │   ├── references/              # Journal profiles, discipline cards
@@ -143,7 +143,7 @@ Immediately note that compilation/rendering verification is required before mark
 | `.R` | Domain-specific bug: −30; Hardcoded absolute path: −20 |
 | `.R` | Missing `set.seed()`: −10 |
 
-Run `python3 scripts/quality_score.py <file>` to get a score. The `.git/hooks/pre-commit` hook blocks commits when any staged academic file scores below 80.
+Run `python3 scripts/quality_score.py <file>` to get a score. After `./scripts/install-hooks.sh`, the tracked `.githooks/pre-commit` hook blocks commits when any staged academic file scores below 80.
 
 ### Commit workflow
 

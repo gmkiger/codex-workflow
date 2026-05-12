@@ -5,9 +5,9 @@
 #   ./scripts/run-workflow.sh <skill-name> [args...]
 #   ./scripts/run-workflow.sh --fork claim-verifier "claims text" "questions text" "sources"
 #
-# Without --fork: launches codex with the skill's .md file as additional
-#   instructions prepended to the session. The skill file tells the model
-#   exactly what to do; the user's args become the task input.
+# Without --fork: launches codex with a prompt that includes the skill's
+#   .md file. The skill file tells the model exactly what to do; the user's
+#   args become the task input.
 #
 # With --fork: spawns a fresh codex subprocess using ONLY the agent's
 #   instructions + the provided text. No prior session context is passed.
@@ -20,6 +20,25 @@ set -euo pipefail
 PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 SKILLS_DIR="$PROJECT_ROOT/.codex/skills"
 AGENTS_DIR="$PROJECT_ROOT/.codex/agents"
+CODEX_MODEL="${CODEX_MODEL:-}"
+CODEX_APPROVAL_POLICY="${CODEX_APPROVAL_POLICY:-on-request}"
+CODEX_SANDBOX="${CODEX_SANDBOX:-workspace-write}"
+
+case "$CODEX_SANDBOX" in
+    read-only|workspace-write|danger-full-access)
+        ;;
+    *)
+        echo "WARNING: invalid CODEX_SANDBOX='$CODEX_SANDBOX'; using workspace-write" >&2
+        CODEX_SANDBOX="workspace-write"
+        ;;
+esac
+
+CODEX_BASE=(codex)
+if [[ -n "$CODEX_MODEL" ]]; then
+    CODEX_BASE+=(--model "$CODEX_MODEL")
+fi
+CODEX_BASE+=(--ask-for-approval "$CODEX_APPROVAL_POLICY")
+CODEX_BASE+=(--sandbox "$CODEX_SANDBOX")
 
 FORK_MODE=false
 SKILL_NAME=""
@@ -79,14 +98,22 @@ if [[ "$FORK_MODE" == "true" ]]; then
         TASK_PROMPT+="$arg"$'\n\n'
     done
 
-    # Spawn fresh subprocess with only the agent instructions
-    # No AGENTS.md is passed — the subprocess sees only the agent file
-    exec codex \
-        --model gpt-4.1 \
-        --approval-mode full-auto \
-        --instructions "$(cat "$AGENT_FILE")" \
-        --quiet \
-        -- "$TASK_PROMPT"
+    FULL_PROMPT=$(cat <<EOF
+You are running a fresh-context workflow fork.
+
+Follow only these agent instructions for this task:
+
+$(cat "$AGENT_FILE")
+
+Task input:
+
+$TASK_PROMPT
+EOF
+)
+
+    # Run from /tmp and ignore project rules to keep this as close as possible
+    # to a fresh verifier context.
+    exec "${CODEX_BASE[@]}" exec --cd /tmp --skip-git-repo-check --ignore-rules -- "$FULL_PROMPT"
 fi
 
 # Normal mode: inject skill instructions into a new session
@@ -119,11 +146,19 @@ if [[ ${#ARGS[@]} -gt 0 ]]; then
     TASK_INPUT+=" ${ARGS[*]}"
 fi
 
-# Launch codex: AGENTS.md is auto-loaded from project root by codex;
-# the skill instructions are appended as additional context via --instructions.
-# The model will see: AGENTS.md + skill file + user task.
-exec codex \
-    --model gpt-4.1 \
-    --approval-mode full-auto \
-    --instructions "$(cat "$SKILL_FILE")" \
-    -- "$TASK_INPUT"
+FULL_PROMPT=$(cat <<EOF
+Run the following project workflow.
+
+Workflow instructions:
+
+$(cat "$SKILL_FILE")
+
+Task input:
+$TASK_INPUT
+EOF
+)
+
+# AGENTS.md is auto-loaded from the project root by Codex; the skill
+# instructions are included in the initial prompt because current Codex CLI
+# releases do not expose a separate `--instructions` flag.
+exec "${CODEX_BASE[@]}" -- "$FULL_PROMPT"

@@ -20,6 +20,8 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 import re
 import json
+import os
+import tempfile
 
 # ==============================================================================
 # SCORING RUBRIC (from .claude/rules/quality-gates.md)
@@ -96,6 +98,13 @@ class IssueDetector:
     def check_quarto_compilation(filepath: Path) -> Tuple[bool, str]:
         """Check if Quarto file compiles successfully."""
         try:
+            quarto_home = Path(tempfile.gettempdir()) / "codex-workflow-quarto-home"
+            quarto_home.mkdir(parents=True, exist_ok=True)
+            env = os.environ.copy()
+            env["HOME"] = str(quarto_home)
+            env["XDG_CACHE_HOME"] = str(quarto_home / ".cache")
+            env["DENO_DIR"] = str(quarto_home / ".deno")
+            env["QUARTO_CACHE_DIR"] = str(quarto_home / ".quarto-cache")
             # Run from the file's parent directory with just the filename,
             # so relative paths inside the .qmd (themes, includes) resolve.
             result = subprocess.run(
@@ -103,7 +112,8 @@ class IssueDetector:
                 capture_output=True,
                 text=True,
                 timeout=120,
-                cwd=filepath.parent
+                cwd=filepath.parent,
+                env=env
             )
             if result.returncode != 0:
                 return False, result.stderr
@@ -239,8 +249,13 @@ class IssueDetector:
         issues = []
         lines = content.split('\n')
 
+        # Match true absolute paths in source strings:
+        #   "/tmp/foo", "C:\\foo", "\\\\server\\share"
+        # Do not flag ordinary escaped LaTeX strings such as "\\toprule".
+        abs_path_re = re.compile(r'["\'](?:/|[A-Za-z]:[/\\]|\\\\\\\\)')
+
         for i, line in enumerate(lines, 1):
-            if re.search(r'["\'][/\\]|["\'][A-Za-z]:[/\\]', line):
+            if abs_path_re.search(line):
                 if not re.search(r'http:|https:|file://|/tmp/', line):
                     issues.append(i)
 
