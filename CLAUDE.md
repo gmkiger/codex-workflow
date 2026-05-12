@@ -9,6 +9,8 @@
 **Institution:** [YOUR INSTITUTION]
 **Branch:** main
 
+> **OpenAI Codex CLI:** Use `AGENTS.md` (root) as the system prompt equivalent of this file. Subdirectory `AGENTS.md` files in `scripts/`, `Slides/`, and `Quarto/` apply path-scoped rules. Launch with `./scripts/codex.sh`. See `quality_reports/plans/2026-05-12_codex-cli-migration.md` for the full translation matrix.
+
 ---
 
 ## Core Principles
